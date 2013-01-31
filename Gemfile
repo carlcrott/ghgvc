@@ -6,7 +6,6 @@ gem 'mysql2', '0.3.11'
 gem 'json'
 gem "ruby-netcdf", "0.6.6.1"
 
-
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
@@ -17,7 +16,6 @@ end
 
 group :development, :test do
   gem 'sqlite3', '1.3.5'
-  gem 'rspec-rails', '2.11.0'
 end
 
 # Gems used only for assets and not required
@@ -32,9 +30,11 @@ gem 'jquery-rails', '2.0.2'
 
 group :test do
   gem 'capybara', '1.1.2'
+  gem "therubyracer", :require => 'v8'
+  gem 'rspec-rails', '2.12.2'
+  gem 'mocha', '~> 0.13.2'
+  gem 'pry'
 end
-
-
 
 group :production do
 #  gem 'pg', '0.12.2'
