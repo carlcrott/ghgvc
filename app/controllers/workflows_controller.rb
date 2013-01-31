@@ -29,11 +29,11 @@ class WorkflowsController < ApplicationController
     # $.post("get_biome", { lng: 106, lat: 127 });
   # returns JSON object of the biome
   def get_biome
-    coordinates = Coordinates.new(params[:lng].to_i, params[:lat].to_i)
+    coordinates = Biome::Coordinates.new(params[:lng].to_i, params[:lat].to_i)
     @biome_data = Biome::Biome.for_coordinates(coordinates)
 
     respond_to do |format|
-      format.json { render json: @biome_data }
+      format.json { render json: @biome_data.to_json }
     end
   end
 
