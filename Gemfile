@@ -4,7 +4,7 @@ gem 'rails', '3.2.9'
 gem 'bootstrap-sass', '2.1'
 gem 'mysql2', '0.3.11'
 gem 'json'
-gem 'ruby-netcdf', '0.6.6.1'
+#gem 'ruby-netcdf', '0.6.6.1'
 gem 'cobravsmongoose'
 
 # Bundle edge Rails instead:
