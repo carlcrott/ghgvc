@@ -7,17 +7,14 @@ gem 'json'
 #gem 'ruby-netcdf', '0.6.6.1'
 gem 'cobravsmongoose'
 
-# Bundle edge Rails instead:
-# gem 'rails', :git => 'git://github.com/rails/rails.git'
-
 group :development do
   gem 'annotate', '2.5.0'
-#  gem 'sqlite3', '1.3.5'
 end
 
 group :development, :test do
   gem 'sqlite3', '1.3.5'
   gem 'rspec-rails', '2.11.0'
+  gem 'konacha'
 end
 
 # Gems used only for assets and not required
@@ -26,9 +23,12 @@ group :assets do
   gem 'sass-rails',   '3.2.5'
   gem 'coffee-rails', '3.2.2'
   gem 'uglifier', '1.2.3'
+  gem 'jquery-rails', '2.0.2'
+  gem 'sinon-rails'
+  gem 'chai-jquery-rails'
+  gem 'sinon-chai-rails'
 end
 
-gem 'jquery-rails', '2.0.2'
 
 group :test do
   gem 'capybara', '1.1.2'
