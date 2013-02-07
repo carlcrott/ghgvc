@@ -189,6 +189,7 @@ function initalize_google_map(lat, lng, zoom) {
 
   );
   var vegtype = new google.maps.GroundOverlay( '../vegtype_overlay.png', vegtype_bounds, overlayOptions );
+  window.vegtype = vegtype; // TODO: remove this after we find out the way to trigger click event correctly
  
   // clear out existing biome matches
   //$('div[id*="_biomes"]').hide();
