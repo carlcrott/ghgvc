@@ -301,9 +301,9 @@ class WorkflowsController < ApplicationController
 #      # high and low values are counter-intuitive ... but are infact correct
 #      @us_bare_latent_heat_flux_j = remap_range( @request_lat, @dims["lat"].get.max, @dims["lat"].get.min, 0, @dims["lat"].get.shape[0] )
 #      @file_var_name = @us_bare_latent_heat_flux.var_names[-1]
-#      @us_bare_latent_heat_flux_num = @us_bare_latent_heat_flux.var( @file_var_name )[ @us_bare_latent_heat_flux_i, @us_bare_latent_heat_flux_j, 0, 0 ][0]
+#      @global_bare_latent_heat_flux_num = @us_bare_latent_heat_flux.var( @file_var_name )[ @us_bare_latent_heat_flux_i, @us_bare_latent_heat_flux_j, 0, 0 ][0]
 ##      puts "#######################################"      
-##      puts @us_bare_latent_heat_flux_num
+##      puts @global_bare_latent_heat_flux_num
 #      @us_bare_latent_heat_flux.close()
 #    end
     #### US Corn latent heat flux: ####
@@ -321,7 +321,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"      
 #      puts @us_corn_latent_heat_flux_num
       @us_corn_latent_heat_flux.close()
-      @us_corn_latent_heat_flux_diff = @us_bare_latent_heat_flux_num - @us_corn_latent_heat_flux_num
+      @us_corn_latent_heat_flux_diff = @global_bare_latent_heat_flux_num - @us_corn_latent_heat_flux_num
     end
     #### US Miscanthus latent heat flux: ####
     # http://localhost:3000/get_biome.json?lng=-82.75&lat=38.75 # => 54.0584
@@ -338,7 +338,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"
 #      puts @us_misc_latent_heat_flux_num
       @us_misc_latent_heat_flux.close()
-      @us_misc_latent_heat_flux_diff = @us_bare_latent_heat_flux_num - @us_misc_latent_heat_flux_num
+      @us_misc_latent_heat_flux_diff = @global_bare_latent_heat_flux_num - @us_misc_latent_heat_flux_num
     end
     #### US Soybean latent heat flux: ####
     # http://localhost:3000/get_biome.json?lng=-79.25&lat=36.25 # => 55.0473
@@ -355,7 +355,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"
 #      puts @us_soy_latent_heat_flux_num
       @us_soy_latent_heat_flux.close()
-      @us_soy_latent_heat_flux_diff = @us_bare_latent_heat_flux_num - @us_soy_latent_heat_flux_num
+      @us_soy_latent_heat_flux_diff = @global_bare_latent_heat_flux_num - @us_soy_latent_heat_flux_num
     end
     #### US Switchgrass latent heat flux: ####
     # http://localhost:3000/get_biome.json?lng=-83.75&lat=34.25 # => 59.6367
@@ -372,26 +372,25 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"
 #      puts @us_switch_latent_heat_flux_num
       @us_switch_latent_heat_flux.close()
-      @us_switch_latent_heat_flux_diff = @us_bare_latent_heat_flux_num - @us_switch_latent_heat_flux_num
+      @us_switch_latent_heat_flux_diff = @global_bare_latent_heat_flux_num - @us_switch_latent_heat_flux_num
     end
     
 
 
     #### Bare net radiation: ####
-    # http://localhost:3000/get_biome.json?lng=-84.25&lat=38.75 # => 72.8878
-    @global_bare_net_radiation_num = NumRu::NetCDF.open("netcdf/GCS/PotVeg/Bare/global_bare_rnet_10yr_avg.nc")
+    @global_bare_net_radiation = NumRu::NetCDF.open("netcdf/GCS/PotVeg/Bare/global_bare_rnet_10yr_avg.nc")
     @dims.clear # ensure hash is empty
-    @dims["lat"] = @global_bare_net_radiation_num.var("latitude")
-    @dims["lon"] = @global_bare_net_radiation_num.var("longitude")
+    @dims["lat"] = @global_bare_net_radiation.var("latitude")
+    @dims["lon"] = @global_bare_net_radiation.var("longitude")
     if ( @dims["lat"].get.min <= @request_lat && @request_lat <= @dims["lat"].get.max && @dims["lon"].get.min <= @request_lng && @request_lng <= @dims["lon"].get.max )
-      @global_bare_net_radiation_num_i = remap_range( @request_lng, @dims["lon"].get.min, @dims["lon"].get.max, 0, @dims["lon"].get.shape[0] )
+      @global_bare_net_radiation_i = remap_range( @request_lng, @dims["lon"].get.min, @dims["lon"].get.max, 0, @dims["lon"].get.shape[0] )
       # high and low values are counter-intuitive ... but are infact correct
-      @global_bare_net_radiation_num_j = remap_range( @request_lat, @dims["lat"].get.max, @dims["lat"].get.min, 0, @dims["lat"].get.shape[0] )
-      @file_var_name = @global_bare_net_radiation_num.var_names[-1]
-      @global_bare_net_radiation_num_num = @global_bare_net_radiation_num.var( @file_var_name )[ @global_bare_net_radiation_num_i, @global_bare_net_radiation_num_j, 0, 0 ][0]
+      @global_bare_net_radiation_j = remap_range( @request_lat, @dims["lat"].get.max, @dims["lat"].get.min, 0, @dims["lat"].get.shape[0] )
+      @file_var_name = @global_bare_net_radiation.var_names[-1]
+      @global_bare_net_radiation_num = @global_bare_net_radiation.var( @file_var_name )[ @global_bare_net_radiation_i, @global_bare_net_radiation_j, 0, 0 ][0]
 #      puts "#######################################"      
-#      puts @global_bare_net_radiation_num_num
-      @global_bare_net_radiation_num.close()
+#      puts @global_bare_net_radiation_num
+      @global_bare_net_radiation.close()
     end
 
 #    #### Bare net radiation: ####
@@ -405,9 +404,9 @@ class WorkflowsController < ApplicationController
 #      # high and low values are counter-intuitive ... but are infact correct
 #      @us_bare_net_radiation_j = remap_range( @request_lat, @dims["lat"].get.max, @dims["lat"].get.min, 0, @dims["lat"].get.shape[0] )
 #      @file_var_name = @us_bare_net_radiation.var_names[-1]
-#      @us_bare_net_radiation_num = @us_bare_net_radiation.var( @file_var_name )[ @us_bare_net_radiation_i, @us_bare_net_radiation_j, 0, 0 ][0]
+#      @global_bare_net_radiation_num = @us_bare_net_radiation.var( @file_var_name )[ @us_bare_net_radiation_i, @us_bare_net_radiation_j, 0, 0 ][0]
 ##      puts "#######################################"      
-##      puts @us_bare_net_radiation_num
+##      puts @global_bare_net_radiation_num
 #      @us_bare_net_radiation.close()
 #    end
     #### US Corn net radiation: ####
@@ -425,7 +424,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"      
 #      puts @us_corn_net_radiation_num
       @us_corn_net_radiation.close()
-      @us_corn_net_radiation_diff = @us_bare_net_radiation_num - @us_corn_net_radiation_num
+      @us_corn_net_radiation_diff = @global_bare_net_radiation_num - @us_corn_net_radiation_num
     end
     #### US Miscanthus net radiation: ####
     # http://localhost:3000/get_biome.json?lng=-86.25&lat=35.75 # => 79.7539
@@ -442,7 +441,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"      
 #      puts @us_misc_net_radiation_num
       @us_misc_net_radiation.close()
-      @us_misc_net_radiation_diff = @us_bare_net_radiation_num - @us_misc_net_radiation_num
+      @us_misc_net_radiation_diff = @global_bare_net_radiation_num - @us_misc_net_radiation_num
     end
     #### US Soybean net radiation: ####
     # http://localhost:3000/get_biome.json?lng=-84.25&lat=36.25 # => 76.7026
@@ -459,7 +458,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"      
 #      puts @us_soy_net_radiation_num
       @us_soy_net_radiation.close()
-      @us_soy_net_radiation_diff = @us_bare_net_radiation_num - @us_soy_net_radiation_num
+      @us_soy_net_radiation_diff = @global_bare_net_radiation_num - @us_soy_net_radiation_num
     end
     #### US Switchgrass net radiation: ####
     # http://localhost:3000/get_biome.json?lng=-76.75&lat=37.75 # => 74.2739
@@ -476,7 +475,7 @@ class WorkflowsController < ApplicationController
 #      puts "#######################################"      
 #      puts @us_switch_net_radiation_num
       @us_switch_net_radiation.close()
-      @us_switch_net_radiation_diff = @us_bare_net_radiation_num - @us_switch_net_radiation_num
+      @us_switch_net_radiation_diff = @global_bare_net_radiation_num - @us_switch_net_radiation_num
     end
 
     #### NBCD: ####
@@ -1091,12 +1090,10 @@ class WorkflowsController < ApplicationController
 
 
 ###   AGROECOSYSTEMS: tropical pasture, temperate pasture, tropical cropland, temperate cropland, wetland rice
+    # disabled per kristas request
     if @us_springwheat_num != nil #&& @us_springwheat_num > 0.01
 #      @biome_data["agroecosystem_eco"]["springwheat"] = @name_indexed_ecosystems["switchgrass"]
     end
-      # Testing:
-      # should include springwheat in the JSON:
-      # http://localhost:3000/get_biome.json?lng=-97.25&lat=44.75
     if @global_pasture_num != nil && @global_pasture_num > 0.01 && @global_pasture_num < 1.0
       if @request_lat.abs < 23.26
         @biome_data["agroecosystem_eco"]["tropical_pasture"] = @name_indexed_ecosystems["tropical pasture"]
@@ -1109,44 +1106,25 @@ class WorkflowsController < ApplicationController
         @biome_data["agroecosystem_eco"]["tropical_cropland"] = @name_indexed_ecosystems["tropical cropland"]
       else
         @biome_data["agroecosystem_eco"]["temperate_cropland"] = @name_indexed_ecosystems["temperate cropland"]
-#        @biome_data["agroecosystem_eco"]["temperate_cropland"][""] = {"s001"=> }
       end
     end
 
-###   BIOFUELS: switchgrass, miscanthus, US corn, US soy
-
-#    @us_switch_net_radiation_diff = @us_bare_net_radiation_num - @us_switch_net_radiation_num
-
-
-#    (ecosystem-bare)/51007200000*1000000000
-#    Values will range from 0-1.
-
-#... rest of the systems need biophysical
-#which they get the PotVeg for
-#netcdf/GCS/PotVeg/PotentialVeg/
-    
-#    go through all 
-
-#    puts ( @global_potVeg_rnet_num.to_f - @us_bare_net_radiation_num.to_f) / 51007200000*1000000000
-#    puts ( @global_potVeg_latent_num.to_f - @us_bare_latent_heat_flux_num.to_f ) / 51007200000*1000000000
-
-##narf
 
 
     puts "#######################################"
     @biome_data.each do |k,v| #= { "native_eco" => {}, "agroecosystem_eco" => {}, "aggrading_eco" => {}, "biofuel_eco" => {} }
         @biome_data[k].each do |biome_k, biome_v|
             @biome_data[k][biome_k]["sw_radiative_forcing"] = {"s000" => ( @global_potVeg_rnet_num.to_f - @global_bare_net_radiation_num.to_f)/ 51007200000*1000000000 }
-            @biome_data[k][biome_k]["latent"] = {"s000" => ( @global_potVeg_latent_num.to_f - @global_bare_latent_heat_flux.to_f )/ 51007200000*1000000000  }
+            @biome_data[k][biome_k]["latent"] = {"s000" => ( @global_potVeg_latent_num.to_f - @global_bare_latent_heat_flux_num.to_f )/ 51007200000*1000000000  }
 
             puts "\n"
             puts biome_k
             puts biome_v
             puts "###"
             puts "swRadF:"
-            puts ( @global_potVeg_rnet_num.to_f - @us_bare_net_radiation_num.to_f)/ 51007200000 * 1000000000
+            puts ( @global_potVeg_rnet_num.to_f - @global_bare_net_radiation_num.to_f)/ 51007200000 * 1000000000
             puts "latent:"
-            puts ( @global_potVeg_latent_num.to_f - @us_bare_latent_heat_flux_num.to_f )/ 51007200000 * 1000000000
+            puts ( @global_potVeg_latent_num.to_f - @global_bare_latent_heat_flux_num.to_f )/ 51007200000 * 1000000000
             
         end
     end
