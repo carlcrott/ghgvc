@@ -27,11 +27,41 @@ class WorkflowsController < ApplicationController
   
   def create_config_input
     @ecosystems = params[:ecosystems]
+    @biophys_workaround = []
     
+    def hax( name, csep_list )
+      biophys_values = {}
+      csep_list.each do |key, value|        
+        
+
+        # Value comes in as a hash with its source attached
+        # we need to isolate the single value
+        isolated_value = value.to_a[0][1]
+
+        ## Checking sanity        
+        raise "ERROR: Expecting superclass to be Hash \n\t... evaluted as #{csep_list.class.superclass}" unless csep_list.class.superclass.to_s == "Hash"     
+        raise "ERROR: Expecting a String got a #{isolated_value.class}" unless isolated_value.class.to_s == "String"     
+
+        # Kludgy biophysical workaround
+        if key == "latent"
+          biophys_values['latent'] = {}
+          biophys_values['latent']['input'] = isolated_value
+        end
+
+        if key == "sw_radiative_forcing"
+          biophys_values['radiative'] = {}
+          biophys_values['radiative']['input'] = isolated_value
+        end       
+
+      end
+#      puts "############## narf ##########444444444"
+#      puts biophys_values 
+      
+      return biophys_values
+    end
     
     # Example call
-    # convert_single_level_hash_to_xml ("Desert", {"OM_ag"=>{"Anderson-Teixeira and DeLucia (2011)"=>"444.0"}, "OM_root"=>{"Anderson-Teixeira and DeLucia (2011)"=>"108.0"}} )
-    
+    # convert_single_level_hash_to_xml ("Desert", {"OM_ag"=>{"Anderson-Teixeira and DeLucia (2011)"=>"444.0"}, "OM_root"=>{"Anderson-Teixeira and DeLucia (2011)"=>"108.0"}} )    
     def convert_single_level_hash_to_xml( name, csep_list )
       # each ecosystem is labled within an opening <pft> and closing </pft> tag
       xml_string = "\t<pft>"
@@ -47,7 +77,6 @@ class WorkflowsController < ApplicationController
         raise "ERROR: Expecting superclass to be Hash \n\t... evaluted as #{csep_list.class.superclass}" unless csep_list.class.superclass.to_s == "Hash"     
         raise "ERROR: Expecting a String got a #{isolated_value.class}" unless isolated_value.class.to_s == "String"     
 
-        
         # rework data to badgerfish convention
         # http://badgerfish.ning.com/
         csep_list[key] = { "$" => isolated_value }
@@ -81,24 +110,31 @@ class WorkflowsController < ApplicationController
       file_string = ""
       file_string << "<#{site_name}>\n"
       
+      @ecosystem_index = key.split('-')[1].to_i
+      
       # Also needing to collapse out the native_eco, agroecosystem_eco, aggrading_eco, biofuel_eco
       if value['native_eco'] != nil
         value['native_eco'].each do | ecosystem_k, ecosystem_v |
+          @biophys_workaround[@ecosystem_index] = hax( ecosystem_k, ecosystem_v)
           file_string << convert_single_level_hash_to_xml( ecosystem_k, ecosystem_v )
         end
       end      
       if value['agroecosystem_eco'] != nil
         value['agroecosystem_eco'].each do | agroecosystem_k, agroecosystem_v |
+          @biophys_workaround[@ecosystem_index] = hax( ecosystem_k, ecosystem_v)
           file_string << convert_single_level_hash_to_xml( agroecosystem_k, agroecosystem_v )
+          
         end
       end
       if value['aggrading_eco'] != nil
         value['aggrading_eco'].each do | aggrading_k, aggrading_v |
+          @biophys_workaround[@ecosystem_index] = hax( ecosystem_k, ecosystem_v)
           file_string << convert_single_level_hash_to_xml( aggrading_k, aggrading_v )
         end
       end
       if value['biofuel_eco'] != nil
         value['biofuel_eco'].each do | biofuel_k, biofuel_v |
+          @biophys_workaround[@ecosystem_index] = hax( ecosystem_k, ecosystem_v)
           file_string << convert_single_level_hash_to_xml( biofuel_k, biofuel_v )
         end      
       end
@@ -119,6 +155,42 @@ class WorkflowsController < ApplicationController
 
     # then poll to see if script is finished 
     @ghgvcR_output = JSON.parse(File.read("/home/thrive/rails_projects/ghgvcR/inst/extdata/output.json"))
+    
+    # Horrible practice assuming that both @biophys_workaround and @ghgvcR_output are same length
+    @ghgvcR_output.each do |site_k, site_data|
+      sitenum = site_k.split('_')[1].to_i
+      @biophys_workaround[sitenum]['radiative']['output'] = site_data[0]['swRFV']
+      
+      output = @biophys_workaround[sitenum]['radiative']['output'].to_f 
+      input = @biophys_workaround[sitenum]['radiative']['input'].to_f
+
+      scale_factor = output / input
+      output_latent =  scale_factor *  @biophys_workaround[sitenum]['latent']['input'].to_f
+      @ghgvcR_output[site_k][0]['latent'] = output_latent
+
+    end
+
+    p @ghgvcR_output
+    
+    
+    
+
+=begin
+{"site_4_data":[{
+    "name":"temperate_grassland",
+    "S_CO2":163.2,
+    "S_CH4":0.3,
+    "S_N2O":0.4,
+    "F_CO2":58.9,
+    "F_CH4":2.9,
+    "F_N2O":-6.4,
+    "D_CO2":0,
+    "D_CH4":0,
+    "D_N2O":0,
+    "swRFV":362.3,
+    "latent": 300.6
+}]
+=end
 
     ## TODO: HANDLE "NA"
     # in a few instances we get back values of "NA" .. replace those with zero    
@@ -1111,20 +1183,20 @@ class WorkflowsController < ApplicationController
 
 
 
-    puts "#######################################"
+#    puts "#######################################"
     @biome_data.each do |k,v| #= { "native_eco" => {}, "agroecosystem_eco" => {}, "aggrading_eco" => {}, "biofuel_eco" => {} }
         @biome_data[k].each do |biome_k, biome_v|
             @biome_data[k][biome_k]["sw_radiative_forcing"] = {"s000" => ( @global_potVeg_rnet_num.to_f - @global_bare_net_radiation_num.to_f)/ 51007200000*1000000000 }
             @biome_data[k][biome_k]["latent"] = {"s000" => ( @global_potVeg_latent_num.to_f - @global_bare_latent_heat_flux_num.to_f )/ 51007200000*1000000000  }
 
-            puts "\n"
-            puts biome_k
-            puts biome_v
-            puts "###"
-            puts "swRadF:"
-            puts ( @global_potVeg_rnet_num.to_f - @global_bare_net_radiation_num.to_f)/ 51007200000 * 1000000000
-            puts "latent:"
-            puts ( @global_potVeg_latent_num.to_f - @global_bare_latent_heat_flux_num.to_f )/ 51007200000 * 1000000000
+#            puts "\n"
+#            puts biome_k
+#            puts biome_v
+#            puts "###"
+#            puts "swRadF:"
+#            puts ( @global_potVeg_rnet_num.to_f - @global_bare_net_radiation_num.to_f)/ 51007200000 * 1000000000
+#            puts "latent:"
+#            puts ( @global_potVeg_latent_num.to_f - @global_bare_latent_heat_flux_num.to_f )/ 51007200000 * 1000000000
             
         end
     end
