@@ -203,7 +203,8 @@ function create_new_divs_for_highchart_location(num) {
     '<div id="storage_chart_' + num + '" class="inline-table"></div>' +
     '<div id="flux_chart_' + num + '" class="inline-table"></div>' +
     '<div id="dist_chart_' + num + '" class="inline-table"></div>' +
-    '<div id="biophys_chart_' + num + '" class="inline-table"></div>'
+    '<div id="biophys_chart_' + num + '" class="inline-table"></div>' +
+    '<div id="crv_chart_' + num + '" class="inline-table"></div>'
   );
 }
 
@@ -234,6 +235,7 @@ $(document).ready(function() {
 				
 		$('#results_table thead tr').html('<th>&nbsp;</th>');
 
+    // Create divs pertaining to each bar
 		$('#co2_storage_row').html('<td>CO2 Storage</td>');
 		$('#ch4_storage_row').html('<td>CH4 Storage</td>');
 		$('#n2o_storage_row').html('<td>N2O Storage</td>');
@@ -245,6 +247,7 @@ $(document).ready(function() {
 		$('#n2o_dist_row').html('<td>N2O Disturbance</td>');
 		$('#swRFV_dist_row').html('<td>Biophysical swRFV</td>');
 		$('#swRFV_dist_row').html('<td>Biophysical latent</td>');
+		$('#crv_dist_row').html('<td>fCRV</td>');
 
 		var names = [];
 		var co2_storage = [];
@@ -258,9 +261,12 @@ $(document).ready(function() {
 		var n2o_dist = [];
 		var swRFV_dist = [];
 		var latent_dist = [];
+		var crv_final = [];
 	
 		for (i = 0; i < results_array.length; i++) {
 			result = results_array[i];
+      fCRVnum = result.S_CO2 - result.F_CO2 - result.swRFV + result.latent
+
 
 			$('#results_table thead tr').append('<th>' + result.name + '</th>');
 
@@ -275,8 +281,10 @@ $(document).ready(function() {
 			$('#n2o_dist_row').append('<td>' + result.D_N2O + '</td>');
 			$('#swRFV_dist_row').append('<td>' + result.swRFV + '</td>');
 			$('#latent_dist_row').append('<td>' + result.latent + '</td>');
+			$('#crv_dist_row').append('<td>' + fCRVnum + '</td>');
 			
-			names.push(result.name);
+			// this line would allow us to drop the horizontal width per graph
+			names.push(result.name); // .replace('_','<br />')
 			co2_storage.push(result.S_CO2);
 			ch4_storage.push(result.S_CH4);
 			n2o_storage.push(result.S_N2O);
@@ -290,14 +298,16 @@ $(document).ready(function() {
 			n2o_dist.push(result.S_N2O - result.F_N2O);
 			
 			// biophysical values
-			swRFV_dist.push(result.swRFV);
+			swRFV_dist.push(-result.swRFV);
 			latent_dist.push(result.latent);
-			
-//			console.log();
+
+			// CRV values add up 
+			crv_final.push(fCRVnum);
+
 		}
 
-		new
-		 Highcharts.Chart({
+    //// Initial Storage
+		new Highcharts.Chart({
 			chart: {
 				renderTo: String ('storage_chart_' + location_number ),
 				type: 'bar',
@@ -316,19 +326,14 @@ $(document).ready(function() {
 			credits: {
 				enabled: false
 			},
-			series: [{
-				name: 'CO2',
-				data: co2_storage
-			}, {
-				name: 'CH4',
-				data: ch4_storage
-			}, {
-				name: 'N2O',
-				data: n2o_storage
-			}]
-		}).setSize(230, 220);
+			series: [
+			  { name: 'CO2', data: co2_storage }, 
+			  { name: 'CH4', data: ch4_storage }, 
+			  { name: 'N2O', data: n2o_storage }
+			]
+		}).setSize(185, 190);
   	
-
+    //// Ongoing Exchange
 		new Highcharts.Chart({
 			chart: {
 				renderTo: String ('flux_chart_' + location_number ),
@@ -348,18 +353,14 @@ $(document).ready(function() {
 			credits: {
 				enabled: false
 			},
-			series: [{
-				name: 'CO2',
-				data: co2_flux
-			}, {
-				name: 'CH4',
-				data: ch4_flux
-			}, {
-				name: 'N2O',
-				data: n2o_flux
-			}]
-		}).setSize(230, 220);
+			series: [
+			  { name: 'CO2', data: co2_flux }, 
+			  { name: 'CH4', data: ch4_flux },
+			  { name: 'N2O', data: n2o_flux }
+			]
+		}).setSize(185, 190);
 
+    //// Total GHGV
 		new Highcharts.Chart({
 			chart: {
 				renderTo: String ('dist_chart_' + location_number ),
@@ -379,18 +380,14 @@ $(document).ready(function() {
 			credits: {
 				enabled: false
 			},
-			series: [{
-				name: 'CO2',
-				data: co2_dist
-			}, {
-				name: 'CH4',
-				data: ch4_dist
-			}, {
-				name: 'N2O',
-				data: n2o_dist
-			}]
-		}).setSize(230, 220);
+			series: [
+			  { name: 'CO2', data: co2_dist }, 
+			  { name: 'CH4', data: ch4_dist },
+			  { name: 'N2O', data: n2o_dist }
+			]
+		}).setSize(185, 190);
 		
+		//// Biophysical
 		new Highcharts.Chart({
 			chart: {
 				renderTo: String ('biophys_chart_' + location_number ),
@@ -414,26 +411,32 @@ $(document).ready(function() {
 			  { name: 'swRFV', data: swRFV_dist },
 			  { name: 'latent', data: latent_dist }, 
 			]
-		}).setSize(230, 220);
+		}).setSize(185, 190);
 		
-		// find biome + get both biophysical values
-		
-		
-//	  $('#biome_instance-0').find('.json_saved').val()['native_eco']['latent']
-		
-		
-//Calculation in R code:
-//swRadF_raw * X = swRadF_CO2eq
-
-//solve for X:
-//X=swRadF_CO2eq/swRadF_raw
-
-//should be on the order of 1 x 10^3.
-
-//calculate for latent:
-//latent_raw * X = latent_CO2eq
-		
-		
+		//// CRV
+  	new Highcharts.Chart({
+			chart: {
+				renderTo: String ('crv_chart_' + location_number ),
+				type: 'bar',
+			},
+			title: {
+				text: 'fCRV'
+			},
+			xAxis: {
+				categories: names
+			},
+			yAxis: {
+				title: {
+					text: 'fCRV'
+				}
+			},
+			credits: {
+				enabled: false
+			},
+			series: [
+			  { name: 'CRV', data: crv_final }
+			]
+		}).setSize(185, 190);
 		
 		return 0;
 	}
